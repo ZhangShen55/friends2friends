@@ -19,9 +19,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.sql.Time;
-import java.util.List;
-import java.util.Set;
-import java.util.Timer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -39,8 +37,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private UserMapper userMapper;
-
-    // https://www.code-nav.cn/
 
     /**
      * 盐值，混淆密码
@@ -196,14 +192,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public List<User> searchUsersByTags(List<String> tagNameList) {
-        //首先判断tag是否空
-        if (CollectionUtils.isEmpty(tagNameList)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+    public List<User> searchUsersByTags(List<String> tagNameList)  {
+
         //通过SQL语句查询
-        return searchUsersByTagsUseSQL(tagNameList,queryWrapper);
+        return searchUsersByTagsUseMemory(tagNameList);
 
         //通过内存查询
         //return searchUsersByTagsUseMemory(tagNameList,queryWrapper);
@@ -250,32 +242,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     }
 
-    /**
-     * 根据tag查询用户 使用SQL语句进行查询
-     *
-     * @param tagNameList
-     * @return
-     */
-    public List<User> searchUsersByTagsUseSQL(List<String> tagNameList, QueryWrapper<User> queryWrapper) {
-        Long startTime = System.currentTimeMillis();
-        //拼接and 查询
-        for (String tagName : tagNameList) {
-            //不断拼接
-            queryWrapper = queryWrapper.like("tags", tagName);
-        }
-        List<User> userList = userMapper.selectList(queryWrapper);
-        List<User> usersList = userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
-        log.info("USE Sql 耗时:"+(System.currentTimeMillis()-startTime));
-        return usersList;
-    }
+
     /**
      * 根据tag查询用户 通过内存进行查询
      *
      * @param tagNameList
      * @return
      */
-    public List<User> searchUsersByTagsUseMemory(List<String> tagNameList, QueryWrapper<User> queryWrapper) {
-        Long startTime = System.currentTimeMillis();
+    public List<User> searchUsersByTagsUseMemory(List<String> tagNameList) {
+        //首先判断tag是否空
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        Long startTime = System.currentTimeMillis();
         //首先查询到所有用户
         List<User> users = userMapper.selectList(queryWrapper);
         //拿到所有用户的标签 进行序列化
@@ -290,6 +270,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             //序列化
             Set<String> tagsSet = gson.fromJson(tags, new TypeToken<Set<String>>() {
             }.getType());
+            //对集合判空
+            tagsSet = Optional.ofNullable(tagsSet).orElse(new HashSet<>());
             //遍历查询穿入的tag是否存在于tagsSet当中
             for (String tag : tagNameList) {
                 if (!tagsSet.contains(tag)) {
@@ -298,7 +280,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
             return true;
         }).map(this::getSafetyUser).collect(Collectors.toList());
-        log.info("USE Memory 耗时:"+(System.currentTimeMillis()-startTime));
+//        log.info("USE Memory 耗时:"+(System.currentTimeMillis()-startTime));
+        return usersList;
+    }
+
+    /**
+     * 根据tag查询用户 使用SQL语句进行查询
+     *
+     * @param tagNameList
+     * @return
+     */
+    @Deprecated
+    private List<User> searchUsersByTagsUseSQL(List<String> tagNameList) {
+        //首先判断tag是否空
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        Long startTime = System.currentTimeMillis();
+        //拼接and 查询
+        for (String tagName : tagNameList) {
+            //不断拼接
+            queryWrapper = queryWrapper.like("tags", tagName);
+        }
+        List<User> userList = userMapper.selectList(queryWrapper);
+        List<User> usersList = userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
+//        log.info("USE Sql 耗时:"+(System.currentTimeMillis()-startTime));
         return usersList;
     }
 }

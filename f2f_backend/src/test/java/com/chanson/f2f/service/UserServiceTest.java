@@ -118,6 +118,8 @@ public class UserServiceTest {
 
     @Test
     public  void testSearchUserByTag(){
+
+        //根据用户标签查用户
         List<String> tagNameList = Arrays.asList("java");
 
         List<User> users = userService.searchUsersByTags(tagNameList);

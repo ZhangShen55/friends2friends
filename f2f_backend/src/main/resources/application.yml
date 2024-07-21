@@ -1,5 +1,7 @@
 # 公共配置文件
 spring:
+  profiles:
+    active: dev # 开发环境
   application:
     name: f2f_backend
   # DataSource Config
@@ -11,6 +13,10 @@ spring:
   # session 失效时间
   session:
     timeout: 86400
+  # springboot 2.6版本使用knife4j的坑 必须修改matching-strategy
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
 server:
   port: 8080
   servlet:

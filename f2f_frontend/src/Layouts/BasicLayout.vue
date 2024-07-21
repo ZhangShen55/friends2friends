@@ -5,40 +5,43 @@
       @click-left="onClickLeft"
       @click-right="onClickRight"
   >
-    <template #right>
-      <van-icon name="search" size="18"/>
+    <template  #right >
+      <van-icon  name="search" size="18"/>
     </template>
   </van-nav-bar>
 
+  <div>
+    <!--路由显示内容-->
+    <router-view/>
+  </div>
 
-  <slot>
-    <template v-if="active === 'index'">
-     <Index/>
-    </template>
-    <template v-if="active === 'team'">
-      <Team/>
-    </template>
-  </slot>
 
-  <van-tabbar v-model="active" @change="onChange">
-    <van-tabbar-item icon="home-o" name="index">主页</van-tabbar-item>
-    <van-tabbar-item icon="search" name="team">队伍</van-tabbar-item>
-    <van-tabbar-item icon="friends-o" name="user">个人</van-tabbar-item>
+  <van-tabbar route  @change="onChange">
+    <van-tabbar-item to="/" icon="wap-home" name="index">主页</van-tabbar-item>
+    <van-tabbar-item to="/team" icon="friends" name="team">队伍</van-tabbar-item>
+    <van-tabbar-item to="/user" icon="manager" name="user">个人</van-tabbar-item>
   </van-tabbar>
 
 </template>
 
-<script setup lang="ts">
-import {ref} from 'vue';
+<script setup>
+import {ref} from 'vue'
 import {showToast} from 'vant'
-import Index from "../pages/Index.vue";
-import Team from "../pages/Team.vue";
+import {useRouter} from "vue-router";
 
-const onClickLeft = () => alert('左');
-const onClickRight = () => alert('右');
+const router = useRouter()
+const onClickLeft = () => {
+  router.back()
+}
+const onClickRight = () => {
+  router.push('/search')
+}
 
 const active = ref('index'); //高亮 主页
 const onChange = (index) => showToast(`标签 ${index}`); // 点击时触发一个轻量的提示
+
+
+
 </script>
 
 

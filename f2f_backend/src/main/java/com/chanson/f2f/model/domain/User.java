@@ -9,8 +9,6 @@ import java.util.Date;
 /**
  * 用户实体
  *
- * @author <a href="https://github.com/lichanson">程序员鱼皮</a>
- * @from <a href="https://chanson.icu">编程导航知识星球</a>
  */
 @TableName(value = "user")
 @Data
@@ -81,6 +79,11 @@ public class User implements Serializable {
      * 用户角色 0 - 普通用户 1 - 管理员
      */
     private Integer userRole;
+
+    /**
+     * 描述
+     */
+    private String profile;
 
     /**
      * 星球编号

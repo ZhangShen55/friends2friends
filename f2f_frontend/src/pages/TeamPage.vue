@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <div>team</div>
+  <div>队伍页</div>
 </template>
 
 <style scoped>
