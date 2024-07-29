@@ -18,7 +18,6 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.sql.Time;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,8 +26,6 @@ import java.util.stream.Collectors;
 /**
  * 用户服务实现类
  *
- * @author <a href="https://github.com/lichanson">程序员鱼皮</a>
- * @from <a href="https://chanson.icu">编程导航知识星球</a>
  */
 @Service
 @Slf4j
@@ -170,6 +167,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setAvatarUrl(originUser.getAvatarUrl());
         safetyUser.setGender(originUser.getGender());
         safetyUser.setPhone(originUser.getPhone());
+        safetyUser.setProfile(originUser.getProfile());
         safetyUser.setEmail(originUser.getEmail());
         safetyUser.setPlanetCode(originUser.getPlanetCode());
         safetyUser.setUserRole(originUser.getUserRole());
@@ -191,6 +189,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return 1;
     }
 
+    /**
+     * 根据用户标签搜索用户
+     * @param tagNameList
+     * @return
+     */
     @Override
     public List<User> searchUsersByTags(List<String> tagNameList)  {
 
@@ -242,6 +245,69 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     }
 
+    /**
+     * 更新用户
+     * @param user
+     * @param loginUser
+     * @return
+     */
+    @Override
+    public int updateUser(User user, User loginUser) {
+        //todo
+        Long userId = loginUser.getId();
+        if(userId <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 不是管理员只 且 登录用户与当前用户不一致 抛出异常
+        if(!isAdmin(loginUser) && userId != loginUser.getId()){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        User oldUser = userMapper.selectById(userId);
+        if(oldUser == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        // 一般更新成功 返回的是条数值
+        return userMapper.updateById(user);
+    }
+
+    /**
+     * 获取当前登录用户信息
+     * @param request
+     * @return
+     */
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if(request == null){
+            return null;
+        }
+        Object userOBJ = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        if(userOBJ == null){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User)userOBJ;
+    }
+
+    /**
+     * 请求中获取USER_LOGIN_STATE判断是否为管理员
+     * @param request
+     * @return
+     */
+    @Override
+    public Boolean isAdmin(HttpServletRequest request) {
+        // 仅管理员可查询
+        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        User user = (User) userObj;
+        return user != null && user.getUserRole() == UserConstant.ADMIN_ROLE;
+    }
+    /**
+     * 拿到用户判断是否为管理员
+     * @param loginUser
+     * @return
+     */
+    @Override
+    public Boolean isAdmin(User loginUser) {
+        return loginUser != null && loginUser.getUserRole() == UserConstant.ADMIN_ROLE;
+    }
 
     /**
      * 根据tag查询用户 通过内存进行查询

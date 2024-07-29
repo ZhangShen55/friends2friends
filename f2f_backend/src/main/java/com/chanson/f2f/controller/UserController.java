@@ -1,6 +1,7 @@
 package com.chanson.f2f.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.chanson.f2f.common.BaseResponse;
 import com.chanson.f2f.common.ErrorCode;
 import com.chanson.f2f.common.ResultUtils;
@@ -24,8 +25,8 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/user")
+@CrossOrigin(origins = "http://localhost:5173",  allowedHeaders = "*", allowCredentials = "true")
 public class UserController {
-
     @Resource
     private UserService userService;
 
@@ -109,10 +110,23 @@ public class UserController {
     }
 
 
+    @PostMapping("/update")
+    public BaseResponse<Integer> updateUser(@RequestBody User user,HttpServletRequest request) {
+        //todo
+        //校验是否为空
+        if(user == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+
+        //触发更新
+        int result = userService.updateUser(user,loginUser);
+        return ResultUtils.success(result);
+    }
 
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH, "缺少管理员权限");
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -124,9 +138,19 @@ public class UserController {
         return ResultUtils.success(list);
     }
 
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>> recommendUsers(Long pageNum ,Long pageSize,HttpServletRequest request) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        List<User> userList = userService.list(queryWrapper);
+        //pageNum：指定页码 pageSize：每页数据量
+        Page<User> page = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+//  List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        return ResultUtils.success(page);
+    }
+
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         if (id <= 0) {
@@ -136,7 +160,6 @@ public class UserController {
         return ResultUtils.success(b);
     }
 
-
     @GetMapping("/search/tags")
     public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tagNameList){
         //判空
@@ -145,19 +168,6 @@ public class UserController {
         }
         List<User> userList = userService.searchUsersByTags(tagNameList);
         return ResultUtils.success(userList);
-    }
-
-    /**
-     * 是否为管理员
-     *
-     * @param request
-     * @return
-     */
-    private boolean isAdmin(HttpServletRequest request) {
-        // 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
-        User user = (User) userObj;
-        return user != null && user.getUserRole() == UserConstant.ADMIN_ROLE;
     }
 
 }

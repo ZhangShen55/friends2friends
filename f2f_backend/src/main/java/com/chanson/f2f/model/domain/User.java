@@ -50,6 +50,11 @@ public class User implements Serializable {
     private String phone;
 
     /**
+     * 描述
+     */
+    private String profile;
+
+    /**
      * 邮箱
      */
     private String email;
@@ -79,11 +84,6 @@ public class User implements Serializable {
      * 用户角色 0 - 普通用户 1 - 管理员
      */
     private Integer userRole;
-
-    /**
-     * 描述
-     */
-    private String profile;
 
     /**
      * 星球编号
