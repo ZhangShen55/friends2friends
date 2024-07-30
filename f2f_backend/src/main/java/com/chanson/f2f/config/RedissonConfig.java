@@ -22,7 +22,6 @@ public class RedissonConfig {
     private String port;
     private String password;
 
-
     @Bean
     public RedissonClient redissonClient(){
         // 1. 创建配置对象
@@ -30,7 +29,6 @@ public class RedissonConfig {
         String address = String.format("redis://%s:%s",host,port);
         config.useSingleServer().setAddress(address).setPassword(password).setDatabase(3);
         // 2，创建实例
-        RedissonClient redisson = Redisson.create(config);
-        return redisson;
+        return Redisson.create(config);
     }
 }
