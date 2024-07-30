@@ -64,7 +64,7 @@ public class InsertUserTest {
     public void insertUserByBatch() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        final int INSERT_NUM = 1000;
+        final int INSERT_NUM = 100000;
         ArrayList<User> userList = new ArrayList<>();
         for (int i = 0; i < INSERT_NUM; i++) {
             User user = new User();
@@ -79,11 +79,11 @@ public class InsertUserTest {
             user.setUserStatus(0);
             user.setUserRole(0);
             user.setPlanetCode("22");
-            user.setTags("[\"Java\",\"Go\",\"男\",\"应届生\",\"书法生\"],\"单身\",\"手动挡\"]");
+            user.setTags("[\"Java\",\"Go\",\"男\",\"应届生\",\"书法生\",\"单身\",\"手动挡\"]");
             userList.add(user);
         }
         //分批次一次插入1000填数据
-        userService.saveBatch(userList, 10);
+        userService.saveBatch(userList, 100000);
         stopWatch.stop();
         System.out.println(stopWatch.getLastTaskTimeMillis());
     }
@@ -105,7 +105,7 @@ public class InsertUserTest {
                 j++;
                 User user = new User();
                 user.setUsername("张雑尢");
-                user.setUserAccount("cheungshen");
+                user.setUserAccount("zhangshen");
                 user.setAvatarUrl("https://himg.bdimg.com/sys/portraitn/item/public.1.e137c1ac.yS1WqOXfSWEasOYJ2-0pvQ");
                 user.setGender(0);
                 user.setUserPassword("12345678");
@@ -115,7 +115,7 @@ public class InsertUserTest {
                 user.setUserStatus(0);
                 user.setUserRole(0);
                 user.setPlanetCode("22");
-                user.setTags("[\"Java\",\"Go\",\"男\",\"应届生\",\"书法生\"],\"单身\",\"手动挡\"]");
+                user.setTags("[\"Java\",\"Go\",\"男\",\"应届生\",\"书法生\",\"单身\",\"手动挡\"]");
                 userList.add(user);
                 if (j % INSERT_NUM == 0) {
                     break;
@@ -125,7 +125,7 @@ public class InsertUserTest {
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 //打印当前线程的名称
                 System.out.println(Thread.currentThread().getName());
-                userService.saveBatch(userList, 10000);
+                userService.saveBatch(userList, 1000);
             });
             // 乘10次
             futureList.add(future);
@@ -155,8 +155,8 @@ public class InsertUserTest {
             while (true) {
                 j++;
                 User user = new User();
-                user.setUsername("张雑尢");
-                user.setUserAccount("cheungshen");
+                user.setUsername("假张s");
+                user.setUserAccount("zhangshen");
                 user.setAvatarUrl("https://himg.bdimg.com/sys/portraitn/item/public.1.e137c1ac.yS1WqOXfSWEasOYJ2-0pvQ");
                 user.setGender(0);
                 user.setUserPassword("12345678");
@@ -166,7 +166,7 @@ public class InsertUserTest {
                 user.setUserStatus(0);
                 user.setUserRole(0);
                 user.setPlanetCode("22");
-                user.setTags("[\"Java\",\"Go\",\"男\",\"应届生\",\"书法生\"],\"单身\",\"手动挡\"]");
+                user.setTags("[\"Java\",\"Go\",\"男\",\"应届生\",\"书法生\",\"单身\",\"手动挡\"]");
                 userList.add(user);
                 if (j % INSERT_NUM == 0) {
                     break;
@@ -176,13 +176,14 @@ public class InsertUserTest {
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 //打印当前线程的名称
                 System.out.println(Thread.currentThread().getName());
-                userService.saveBatch(userList, 10000);
+                userService.saveBatch(userList, 100);
             },threadPoolExecutor);
             // 乘10次
             futureList.add(future);
         }
         //执行
         CompletableFuture.allOf(futureList.toArray(new CompletableFuture[]{})).join();
+
         stopWatch.stop();
         System.out.println(stopWatch.getLastTaskTimeMillis());
     }
