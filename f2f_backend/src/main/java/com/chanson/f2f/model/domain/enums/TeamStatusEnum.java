@@ -27,7 +27,6 @@ public enum TeamStatusEnum {
         if (value == null) {
             return null;
         }
-
         TeamStatusEnum[] values = TeamStatusEnum.values();
         for (TeamStatusEnum teamStatusEnum : values) {
             if (teamStatusEnum.getValue() == value) {

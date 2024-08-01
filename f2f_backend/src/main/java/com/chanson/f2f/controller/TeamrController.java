@@ -10,10 +10,14 @@ import com.chanson.f2f.model.domain.Team;
 import com.chanson.f2f.model.domain.User;
 import com.chanson.f2f.model.domain.dto.TeamQuery;
 import com.chanson.f2f.model.domain.request.TeamAddRequest;
+import com.chanson.f2f.model.domain.request.TeamJoinRequest;
+import com.chanson.f2f.model.domain.request.TeamUpdateRequest;
+import com.chanson.f2f.model.domain.vo.TeamUserVO;
 import com.chanson.f2f.service.TeamService;
 import com.chanson.f2f.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,11 +67,14 @@ public class TeamrController {
     }
 
     @PostMapping("/update")
-    public BaseResponse<Boolean> updateTeam(@RequestBody Team team) {
-        if (team == null) {
+    public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest,HttpServletRequest request) {
+        if (teamUpdateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean result = teamService.updateById(team);
+
+        //获得登录用户
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.updateTeam(teamUpdateRequest,loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新失败");
         }
@@ -89,20 +96,29 @@ public class TeamrController {
     }
 
     @GetMapping("/list")
-    public BaseResponse<List<Team>> listTeams(TeamQuery teamQuery) {
+    public BaseResponse<List<TeamUserVO>> listTeams(TeamQuery teamQuery,HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Team team = new Team();
 
-        BeanUtils.copyProperties(team, teamQuery);
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
-        List<Team> resultList = teamService.list(queryWrapper);
+        //判断是否为管理员
+        Boolean isAdmin = userService.isAdmin(request);
+        List<TeamUserVO> resultList = teamService.listTeams(teamQuery,isAdmin);
         if (resultList == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "查询失败");
         }
         return ResultUtils.success(resultList);
     }
+
+//    @GetMapping("/list")
+//    public BaseResponse<List<Team>> listTeams(TeamQuery teamQuery) {
+
+//        List<Team> resultList = teamService.listTeams(queryWrapper);
+//        if (resultList == null) {
+//            throw new BusinessException(ErrorCode.NULL_ERROR, "查询失败");
+//        }
+//        return ResultUtils.success(resultList);
+//    }
 
 
     @GetMapping("/list/page")
@@ -111,7 +127,7 @@ public class TeamrController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Team team = new Team();
-        BeanUtils.copyProperties(team, teamQuery);
+        BeanUtils.copyProperties(teamQuery,team);
         Page<Team> page = new Page<>(teamQuery.getPageNum(),teamQuery.getPageSize());
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
         Page<Team> resultPage = teamService.page(page, queryWrapper);
@@ -119,5 +135,19 @@ public class TeamrController {
             throw new BusinessException(ErrorCode.NULL_ERROR, "查询失败");
         }
         return ResultUtils.success(resultPage);
+    }
+
+
+    @PostMapping("/join")
+    public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest,HttpServletRequest request){
+        if(teamJoinRequest == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+
+        //获得登录用户
+        User loginUser = userService.getLoginUser(request);
+        Boolean result =teamService.joinTeam(teamJoinRequest,loginUser);
+        return ResultUtils.success(result);
+
     }
 }

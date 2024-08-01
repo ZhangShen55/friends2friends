@@ -4,17 +4,18 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.chanson.f2f.common.PageRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
  * 队伍封装查询类
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class TeamQuery extends PageRequest {
     /**
      * id
      */
-    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
@@ -22,6 +23,10 @@ public class TeamQuery extends PageRequest {
      */
     private String name;
 
+    /**
+     * 搜索关键词同时对队伍名称和描述搜索
+     */
+    private String searchText;
     /**
      * 描述
      */
